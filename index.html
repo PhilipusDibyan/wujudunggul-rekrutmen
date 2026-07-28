@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Berkas Pelamar — CV. Wujud Unggul</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --navy:#1B2A4A;
+    --navy-deep:#101a30;
+    --paper:#F2F3EE;
+    --paper-card:#FBFAF7;
+    --teal:#0F6B66;
+    --gold:#C9A227;
+    --coral:#D6602E;
+    --ink:#1B2A4A;
+    --ink-soft:#5B6B7C;
+    --line:#D8D6CC;
+    --radius:2px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--gold); color:var(--navy-deep);}
+
+  .display{font-family:'Fraunces', serif;}
+  .mono{font-family:'IBM Plex Mono', monospace;}
+
+  /* ---------- HEADER ---------- */
+  header.topbar{
+    background:var(--navy);
+    color:#F2F3EE;
+    padding:0;
+    position:relative;
+    overflow:hidden;
+  }
+  .topbar-inner{
+    max-width:1180px;
+    margin:0 auto;
+    padding:36px 28px 30px;
+    position:relative;
+    z-index:2;
+  }
+  .folder-tab{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--gold);
+    color:var(--navy-deep);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    letter-spacing:.08em;
+    font-weight:600;
+    padding:6px 14px;
+    border-radius:0 0 6px 6px;
+    margin-bottom:22px;
+  }
+  .topbar h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(28px, 4vw, 44px);
+    margin:0 0 6px;
+    letter-spacing:-0.01em;
+  }
+  .topbar p.lede{
+    margin:0 0 26px;
+    color:#C7D0DE;
+    font-size:15px;
+    max-width:560px;
+    line-height:1.5;
+  }
+  .stat-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:14px;
+    align-items:stretch;
+  }
+  .stat-card{
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.14);
+    border-radius:4px;
+    padding:14px 18px;
+    min-width:130px;
+  }
+  .stat-card .num{
+    font-family:'Fraunces', serif;
+    font-size:30px;
+    font-weight:600;
+    line-height:1;
+    color:#fff;
+  }
+  .stat-card .lbl{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:#A8B4C6;
+    margin-top:6px;
+  }
+  .upload-zone{
+    margin-left:auto;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    align-items:flex-start;
+    justify-content:center;
+  }
+  .btn-upload{
+    background:var(--coral);
+    color:#fff;
+    border:none;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    padding:11px 18px;
+    border-radius:4px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .btn-upload:hover{background:#c1531f; transform:translateY(-1px);}
+  .btn-upload:active{transform:translateY(0);}
+  .upload-hint{font-size:11px; color:#9FADC0; max-width:220px; line-height:1.4;}
+  #csvInput{display:none;}
+
+  .topbar-bg{
+    position:absolute; inset:0;
+    background:
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 90px);
+    z-index:1;
+  }
+
+  /* ---------- STATUS BANNER ---------- */
+  .banner{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 28px;
+  }
+  .banner-inner{
+    margin-top:-1px;
+    background:#FCEFD9;
+    border:1px solid #E9CE93;
+    color:#7A5A12;
+    font-size:13px;
+    padding:12px 16px;
+    border-radius:4px;
+    display:none;
+    gap:8px;
+    align-items:flex-start;
+  }
+  .banner-inner.show{display:flex;}
+  .banner-inner strong{display:block; margin-bottom:2px;}
+
+  /* ---------- TOOLBAR ---------- */
+  .toolbar{
+    position:sticky; top:0; z-index:40;
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+  }
+  .toolbar-inner{
+    max-width:1180px;
+    margin:0 auto;
+    padding:14px 28px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+  }
+  .search-box{
+    flex:1 1 240px;
+    position:relative;
+  }
+  .search-box input{
+    width:100%;
+    padding:10px 14px 10px 34px;
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:4px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .search-box input:focus{outline:2px solid var(--teal); outline-offset:1px;}
+  .search-box::before{
+    content:"⌕";
+    position:absolute; left:12px; top:50%; transform:translateY(-50%);
+    color:var(--ink-soft); font-size:16px; pointer-events:none;
+  }
+  select.filter-select{
+    padding:10px 12px;
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:4px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:13px;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  select.filter-select:focus{outline:2px solid var(--teal); outline-offset:1px;}
+  .result-count{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    white-space:nowrap;
+  }
+
+  /* ---------- BREAKDOWN CHIPS ---------- */
+  .breakdown{
+    max-width:1180px;
+    margin:22px auto 0;
+    padding:0 28px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .breakdown .chip{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11.5px;
+    padding:5px 11px;
+    border-radius:20px;
+    border:1px solid var(--line);
+    background:#fff;
+    color:var(--ink-soft);
+  }
+  .breakdown .chip b{color:var(--navy); font-weight:600;}
+
+  /* ---------- GRID ---------- */
+  main{
+    max-width:1180px;
+    margin:0 auto;
+    padding:22px 28px 60px;
+  }
+  .empty-state{
+    text-align:center;
+    padding:70px 20px;
+    color:var(--ink-soft);
+  }
+  .empty-state .display{font-size:22px; color:var(--navy); margin-bottom:8px;}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+    gap:16px;
+  }
+
+  .card{
+    background:var(--paper-card);
+    border:1px solid var(--line);
+    border-radius:3px;
+    position:relative;
+    padding:18px 18px 16px;
+    cursor:pointer;
+    transition:box-shadow .15s ease, transform .15s ease;
+    border-top:4px solid var(--branch-color, var(--teal));
+  }
+  .card:hover{
+    box-shadow:0 6px 18px rgba(27,42,74,0.10);
+    transform:translateY(-2px);
+  }
+  .card:focus-visible{outline:2px solid var(--teal); outline-offset:2px;}
+
+  .card-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .file-no{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    color:var(--ink-soft);
+    letter-spacing:.03em;
+  }
+  .branch-tag{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    font-weight:600;
+    color:var(--branch-color, var(--teal));
+  }
+  .card h3{
+    font-family:'Fraunces', serif;
+    font-size:19px;
+    font-weight:600;
+    margin:0 0 2px;
+    color:var(--navy);
+  }
+  .card .nickname{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:12px;
+  }
+  .card .position{
+    display:inline-block;
+    background:#EFEAE0;
+    color:var(--navy);
+    font-size:12px;
+    font-weight:600;
+    padding:3px 10px;
+    border-radius:20px;
+    margin-bottom:12px;
+  }
+  .card-meta{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    border-top:1px dashed var(--line);
+    padding-top:10px;
+  }
+  .card-meta div{display:flex; justify-content:space-between; gap:8px;}
+  .card-meta span.v{color:var(--ink); font-weight:500; text-align:right;}
+  .card-footer{
+    margin-top:12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .badge-status{
+    font-size:10.5px;
+    font-family:'IBM Plex Mono', monospace;
+    padding:3px 8px;
+    border-radius:3px;
+    background:#E4EFE7;
+    color:#2E7D32;
+  }
+  .badge-status.tidak{background:#F5E4E1; color:var(--coral);}
+  .detail-link{
+    font-size:12px;
+    font-weight:600;
+    color:var(--teal);
+  }
+
+  /* ---------- MODAL ---------- */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(16,26,48,0.55);
+    display:none;
+    align-items:flex-start;
+    justify-content:center;
+    padding:40px 16px;
+    z-index:100;
+    overflow-y:auto;
+  }
+  .overlay.open{display:flex;}
+  .modal{
+    background:#fff;
+    max-width:680px;
+    width:100%;
+    border-radius:4px;
+    padding:0;
+    position:relative;
+    animation:riseIn .18s ease;
+  }
+  @keyframes riseIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+  .modal-head{
+    background:var(--navy);
+    color:#fff;
+    padding:24px 28px;
+    border-radius:4px 4px 0 0;
+    position:relative;
+  }
+  .modal-head .file-no{color:#9FADC0;}
+  .modal-head h2{
+    font-family:'Fraunces', serif;
+    font-size:26px;
+    margin:6px 0 4px;
+  }
+  .modal-head .sub{color:#C7D0DE; font-size:13px;}
+  .modal-close{
+    position:absolute; top:18px; right:18px;
+    background:rgba(255,255,255,0.12);
+    border:none;
+    color:#fff;
+    width:30px; height:30px;
+    border-radius:50%;
+    font-size:16px;
+    cursor:pointer;
+    line-height:1;
+  }
+  .modal-close:hover{background:rgba(255,255,255,0.22);}
+  .modal-body{padding:22px 28px 30px;}
+  .field-group{margin-bottom:20px;}
+  .field-group h4{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--branch-color, var(--teal));
+    border-bottom:1px solid var(--line);
+    padding-bottom:6px;
+    margin:0 0 10px;
+  }
+  .field-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px 20px;
+  }
+  .field{font-size:13.5px;}
+  .field.full{grid-column:1 / -1;}
+  .field label{
+    display:block;
+    font-size:10.5px;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    margin-bottom:3px;
+  }
+  .field .val{color:var(--ink); line-height:1.45;}
+  .field a{color:var(--teal);}
+
+  /* ---------- FOOTER GUIDE ---------- */
+  footer{
+    background:#fff;
+    border-top:1px solid var(--line);
+  }
+  .footer-inner{
+    max-width:1180px;
+    margin:0 auto;
+    padding:40px 28px 50px;
+  }
+  footer h3{
+    font-family:'Fraunces', serif;
+    font-size:20px;
+    color:var(--navy);
+    margin:0 0 6px;
+  }
+  footer p.sub{color:var(--ink-soft); font-size:13.5px; margin:0 0 24px; max-width:620px;}
+  .steps{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
+    gap:20px;
+  }
+  .step{
+    border-left:2px solid var(--gold);
+    padding-left:14px;
+  }
+  .step .n{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--gold);
+    font-weight:600;
+  }
+  .step p{font-size:13px; color:var(--ink-soft); margin:4px 0 0; line-height:1.5;}
+  .step strong{color:var(--navy);}
+  .footnote{
+    margin-top:26px;
+    padding-top:16px;
+    border-top:1px dashed var(--line);
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .footnote code{
+    background:#F2F3EE;
+    padding:1px 6px;
+    border-radius:3px;
+    font-family:'IBM Plex Mono', monospace;
+  }
+
+  @media (max-width:640px){
+    .stat-row{gap:10px;}
+    .upload-zone{margin-left:0; width:100%;}
+    .field-grid{grid-template-columns:1fr;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-bg"></div>
+  <div class="topbar-inner">
+    <span class="folder-tab">BERKAS · REKRUTMEN</span>
+    <h1>Data Pelamar — CV. Wujud Unggul</h1>
+    <p class="lede">Rekap kandidat dari formulir rekrutmen, dirapikan supaya siapa saja di tim GA bisa cepat melihat, mencari, dan menyaring data pelamar antar cabang.</p>
+    <div class="stat-row">
+      <div class="stat-card"><div class="num" id="statTotal">0</div><div class="lbl">Pelamar Masuk</div></div>
+      <div class="stat-card"><div class="num" id="statCabang">0</div><div class="lbl">Cabang Dituju</div></div>
+      <div class="stat-card"><div class="num" id="statPosisi">0</div><div class="lbl">Jenis Posisi</div></div>
+      <div class="upload-zone">
+        <button class="btn-upload" id="btnUpload" type="button">⭱ Pratinjau CSV Lain</button>
+        <span class="upload-hint" id="uploadHint">Memuat data.csv…</span>
+        <input type="file" id="csvInput" accept=".csv">
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="banner">
+  <div class="banner-inner" id="fetchBanner">
+    <div>
+      <strong>data.csv belum bisa dimuat otomatis.</strong>
+      Ini normal kalau kamu membuka file ini langsung dari komputer (bukan lewat GitHub Pages/server). Gunakan tombol "Pratinjau CSV Lain" di atas untuk memuat data secara manual.
+    </div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="toolbar-inner">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Cari nama, posisi, cabang, atau nomor WA…">
+    </div>
+    <select class="filter-select" id="filterCabang"><option value="">Semua Cabang</option></select>
+    <select class="filter-select" id="filterPosisi"><option value="">Semua Posisi</option></select>
+    <span class="result-count" id="resultCount"></span>
+  </div>
+</div>
+
+<div class="breakdown" id="breakdownChips"></div>
+
+<main>
+  <div class="grid" id="cardGrid"></div>
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <div class="display">Tidak ada data yang cocok</div>
+    <p>Coba ubah kata kunci pencarian atau filter cabang / posisi.</p>
+  </div>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalContent"></div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <h3>Cara memperbarui data</h3>
+    <p class="sub">Halaman ini membaca isi file <code style="font-family:'IBM Plex Mono',monospace;background:#F2F3EE;padding:1px 6px;border-radius:3px;">data.csv</code> yang ada satu folder dengannya. Jadi untuk memperbarui data yang tampil ke <strong>semua orang</strong> yang membuka link GitHub Pages-nya, kamu tidak perlu sentuh file HTML sama sekali — cukup ganti isi <code style="font-family:'IBM Plex Mono',monospace;background:#F2F3EE;padding:1px 6px;border-radius:3px;">data.csv</code>.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="n">01</div>
+        <p><strong>Buka Google Form → tab Responses</strong>, lalu klik ikon Sheets untuk membuka Google Sheet hasil respons.</p>
+      </div>
+      <div class="step">
+        <div class="n">02</div>
+        <p><strong>Unduh sebagai CSV</strong> lewat menu File → Download → Comma Separated Values (.csv).</p>
+      </div>
+      <div class="step">
+        <div class="n">03</div>
+        <p>Di repository GitHub, buka file <strong>data.csv</strong>, klik ikon pensil (Edit), <strong>hapus semua isinya</strong>, lalu tempel isi file CSV yang baru diunduh tadi.</p>
+      </div>
+      <div class="step">
+        <div class="n">04</div>
+        <p>Klik <strong>Commit changes</strong>. Dalam beberapa menit, halaman GitHub Pages akan otomatis menampilkan data terbaru untuk semua orang.</p>
+      </div>
+    </div>
+    <div class="footnote">
+      Tombol <strong>"Pratinjau CSV Lain"</strong> di bagian atas halaman hanya untuk melihat sekilas file CSV lain di komputer kamu sendiri — perubahan itu <strong>tidak</strong> ikut ter-upload ke GitHub dan akan hilang saat halaman di-refresh. Untuk perubahan permanen yang tampil ke semua orang, selalu lewat langkah 01–04 di atas (edit <code>data.csv</code> di GitHub).
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  // Maps our internal keys to a regex that matches the Google Form column header text.
+  // Matching by pattern (not fixed position) so the page keeps working even if Google
+  // reorders or slightly renumbers the form questions later.
+  const HEADER_PATTERNS = [
+    ['timestamp', /^timestamp$/i],
+    ['nama_lengkap', /nama lengkap/i],
+    ['nama_panggilan', /nama panggilan/i],
+    ['ttl', /tempat.*tanggal lahir/i],
+    ['jenis_kelamin', /jenis kelamin/i],
+    ['alamat_ktp', /alamat domisili lengkap/i],
+    ['alamat_domisili', /alamat domisili saat ini/i],
+    ['wa', /whatsapp/i],
+    ['email', /alamat email aktif/i],
+    ['status_nikah', /status pernikahan/i],
+    ['agama', /^\s*\d*\.?\s*agama/i],
+    ['posisi', /posisi yang dilamar/i],
+    ['cabang', /cabang atau lokasi/i],
+    ['ekspektasi_gaji', /ekspektasi gaji/i],
+    ['mulai_kerja', /mulai bergabung/i],
+    ['sumber_info', /sumber informasi/i],
+    ['jobdesk', /jobdesk/i],
+    ['promosi_diri', /promosikan diri/i],
+    ['bersedia_pindah', /bersedia ditempatkan/i],
+    ['pendidikan', /pendidikan terakhir/i],
+    ['sekolah', /nama sekolah/i],
+    ['tahun_nilai', /tahun lulus/i],
+    ['sertifikasi', /sertifikasi/i],
+    ['email_form', /^email address$/i],
+    ['mbti', /tipe kepribadian mbti/i],
+    ['link_mbti', /upload hasil mbti/i],
+  ];
+
+  const BRANCH_COLORS = {
+    'Surabaya': '#0F6B66',
+    'Bali': '#C9A227',
+    'Banjarmasin': '#8E5A2E',
+    'Malang': '#3D6BB5',
+    'Yogyakarta': '#8E3B6B'
+  };
+  function branchColor(name){
+    if(!name) return '#5B6B7C';
+    if(BRANCH_COLORS[name]) return BRANCH_COLORS[name];
+    let hash = 0;
+    for(let i=0;i<name.length;i++){ hash = name.charCodeAt(i) + ((hash << 5) - hash); }
+    const palette = ['#0F6B66','#C9A227','#8E5A2E','#3D6BB5','#8E3B6B','#2E7D32','#C1541F'];
+    return palette[Math.abs(hash) % palette.length];
+  }
+
+  let applicants = [];
+
+  function buildKeyMap(fields){
+    // For each raw CSV header, find which internal key it matches.
+    const map = {};
+    fields.forEach(f => {
+      const clean = (f || '').trim();
+      for(const [key, pattern] of HEADER_PATTERNS){
+        if(pattern.test(clean) && !(key in map)){
+          map[key] = f;
+          break;
+        }
+      }
+    });
+    return map;
+  }
+
+  function objectsFromParsed(parsed){
+    const map = buildKeyMap(parsed.meta.fields || []);
+    return parsed.data
+      .filter(row => Object.values(row).some(v => (v || '').toString().trim()))
+      .map(row => {
+        const o = {};
+        HEADER_PATTERNS.forEach(([key]) => {
+          o[key] = map[key] !== undefined ? (row[map[key]] || '').toString().trim() : '';
+        });
+        return o;
+      });
+  }
+
+  function setUploadHint(text){
+    document.getElementById('uploadHint').textContent = text;
+  }
+
+  function showFetchBanner(show){
+    document.getElementById('fetchBanner').classList.toggle('show', show);
+  }
+
+  function loadFromCsv(){
+    fetch('data.csv', {cache:'no-store'})
+      .then(res => {
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        return res.text();
+      })
+      .then(text => {
+        const parsed = Papa.parse(text, {header:true, skipEmptyLines:true});
+        applicants = objectsFromParsed(parsed);
+        showFetchBanner(false);
+        setUploadHint('Dimuat dari data.csv · ' + applicants.length + ' baris');
+        render();
+      })
+      .catch(err => {
+        console.warn('Tidak bisa memuat data.csv:', err);
+        applicants = [];
+        showFetchBanner(true);
+        setUploadHint('data.csv tidak termuat — gunakan tombol di samping');
+        render();
+      });
+  }
+
+  function formatRupiah(v){
+    const n = parseFloat(v);
+    if(isNaN(n)) return v || '—';
+    return 'Rp' + n.toLocaleString('id-ID');
+  }
+
+  function escapeHtml(s){
+    return (s || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function populateFilters(){
+    const cabangs = [...new Set(applicants.map(a => a.cabang).filter(Boolean))].sort();
+    const posisis = [...new Set(applicants.map(a => a.posisi).filter(Boolean))].sort();
+    const fc = document.getElementById('filterCabang');
+    const fp = document.getElementById('filterPosisi');
+    const prevC = fc.value, prevP = fp.value;
+    fc.innerHTML = '<option value="">Semua Cabang</option>' + cabangs.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    fp.innerHTML = '<option value="">Semua Posisi</option>' + posisis.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+    if(cabangs.includes(prevC)) fc.value = prevC;
+    if(posisis.includes(prevP)) fp.value = prevP;
+  }
+
+  function renderBreakdown(){
+    const el = document.getElementById('breakdownChips');
+    const counts = {};
+    applicants.forEach(a => {
+      const key = a.cabang || 'Tidak diisi';
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    el.innerHTML = Object.entries(counts)
+      .sort((a,b) => b[1]-a[1])
+      .map(([k,v]) => `<span class="chip"><b>${v}</b> · ${escapeHtml(k)}</span>`).join('');
+  }
+
+  function currentFilters(){
+    return {
+      q: document.getElementById('searchInput').value.trim().toLowerCase(),
+      cabang: document.getElementById('filterCabang').value,
+      posisi: document.getElementById('filterPosisi').value
+    };
+  }
+
+  function matches(a, f){
+    if(f.cabang && a.cabang !== f.cabang) return false;
+    if(f.posisi && a.posisi !== f.posisi) return false;
+    if(f.q){
+      const hay = [a.nama_lengkap, a.nama_panggilan, a.posisi, a.cabang, a.wa, a.email].join(' ').toLowerCase();
+      if(!hay.includes(f.q)) return false;
+    }
+    return true;
+  }
+
+  function cardHtml(a, idx){
+    const color = branchColor(a.cabang);
+    const bp = (a.bersedia_pindah || '').toLowerCase();
+    const statusOk = bp.includes('bersedia') && !bp.includes('tidak');
+    return `
+      <div class="card" tabindex="0" role="button" data-idx="${idx}" style="--branch-color:${color}">
+        <div class="card-top">
+          <span class="file-no">No. ${String(idx+1).padStart(3,'0')}</span>
+          <span class="branch-tag">${escapeHtml(a.cabang || '—')}</span>
+        </div>
+        <h3>${escapeHtml(a.nama_lengkap || 'Tanpa Nama')}</h3>
+        <div class="nickname">${escapeHtml(a.nama_panggilan ? '“' + a.nama_panggilan + '”' : '')} ${a.jenis_kelamin ? '· ' + escapeHtml(a.jenis_kelamin) : ''}</div>
+        <span class="position">${escapeHtml(a.posisi || 'Belum diisi')}</span>
+        <div class="card-meta">
+          <div><span>Ekspektasi Gaji</span><span class="v">${formatRupiah(a.ekspektasi_gaji)}</span></div>
+          <div><span>WhatsApp</span><span class="v mono">${escapeHtml(a.wa || '—')}</span></div>
+          <div><span>Pendidikan</span><span class="v">${escapeHtml(a.pendidikan || '—')}</span></div>
+        </div>
+        <div class="card-footer">
+          <span class="badge-status ${statusOk ? '' : 'tidak'}">${escapeHtml(a.bersedia_pindah || 'Belum diisi')}</span>
+          <span class="detail-link">Lihat detail →</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function render(){
+    const f = currentFilters();
+    const filtered = applicants.filter(a => matches(a, f));
+    document.getElementById('statTotal').textContent = applicants.length;
+    document.getElementById('statCabang').textContent = new Set(applicants.map(a=>a.cabang).filter(Boolean)).size;
+    document.getElementById('statPosisi').textContent = new Set(applicants.map(a=>a.posisi).filter(Boolean)).size;
+    document.getElementById('resultCount').textContent = filtered.length + ' dari ' + applicants.length + ' data';
+
+    const grid = document.getElementById('cardGrid');
+    const empty = document.getElementById('emptyState');
+    if(filtered.length === 0){
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+    }else{
+      empty.style.display = 'none';
+      grid.innerHTML = filtered.map((a) => cardHtml(a, applicants.indexOf(a))).join('');
+    }
+    populateFilters();
+    renderBreakdown();
+
+    grid.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('click', () => openModal(parseInt(card.dataset.idx,10)));
+      card.addEventListener('keypress', (e) => { if(e.key === 'Enter') openModal(parseInt(card.dataset.idx,10)); });
+    });
+  }
+
+  function fieldRow(label, value, full){
+    return `<div class="field ${full?'full':''}"><label>${label}</label><div class="val">${value || '<span style=\"color:#B7BEC9\">Belum diisi</span>'}</div></div>`;
+  }
+
+  function openModal(idx){
+    const a = applicants[idx];
+    if(!a) return;
+    const color = branchColor(a.cabang);
+    const linkMbti = a.link_mbti ? `<a href="${escapeHtml(a.link_mbti)}" target="_blank" rel="noopener">Buka hasil MBTI ↗</a>` : '';
+    document.getElementById('modalContent').style.setProperty('--branch-color', color);
+    document.getElementById('modalContent').innerHTML = `
+      <div class="modal-head">
+        <button class="modal-close" id="modalCloseBtn" aria-label="Tutup">✕</button>
+        <span class="file-no mono">No. ${String(idx+1).padStart(3,'0')} · Diisi ${escapeHtml(a.timestamp || '—')}</span>
+        <h2>${escapeHtml(a.nama_lengkap || 'Tanpa Nama')}</h2>
+        <div class="sub">${escapeHtml(a.posisi || '—')} · ${escapeHtml(a.cabang || '—')}</div>
+      </div>
+      <div class="modal-body">
+        <div class="field-group">
+          <h4>Data Diri</h4>
+          <div class="field-grid">
+            ${fieldRow('Nama Panggilan', escapeHtml(a.nama_panggilan))}
+            ${fieldRow('Jenis Kelamin', escapeHtml(a.jenis_kelamin))}
+            ${fieldRow('Tempat, Tgl Lahir', escapeHtml(a.ttl))}
+            ${fieldRow('Status Pernikahan', escapeHtml(a.status_nikah))}
+            ${fieldRow('Agama', escapeHtml(a.agama))}
+            ${fieldRow('Pendidikan Terakhir', escapeHtml(a.pendidikan))}
+            ${fieldRow('Alamat KTP', escapeHtml(a.alamat_ktp), true)}
+            ${fieldRow('Alamat Domisili Saat Ini', escapeHtml(a.alamat_domisili), true)}
+          </div>
+        </div>
+        <div class="field-group">
+          <h4>Kontak</h4>
+          <div class="field-grid">
+            ${fieldRow('WhatsApp', escapeHtml(a.wa))}
+            ${fieldRow('Email', escapeHtml(a.email))}
+          </div>
+        </div>
+        <div class="field-group">
+          <h4>Lamaran Kerja</h4>
+          <div class="field-grid">
+            ${fieldRow('Posisi Dilamar', escapeHtml(a.posisi))}
+            ${fieldRow('Cabang Dituju', escapeHtml(a.cabang))}
+            ${fieldRow('Ekspektasi Gaji', formatRupiah(a.ekspektasi_gaji))}
+            ${fieldRow('Bisa Mulai Kerja', escapeHtml(a.mulai_kerja))}
+            ${fieldRow('Sumber Info Lowongan', escapeHtml(a.sumber_info))}
+            ${fieldRow('Bersedia Pindah Cabang', escapeHtml(a.bersedia_pindah))}
+            ${fieldRow('Pemahaman Jobdesk', escapeHtml(a.jobdesk), true)}
+            ${fieldRow('Alasan Harus Dipilih', escapeHtml(a.promosi_diri), true)}
+          </div>
+        </div>
+        <div class="field-group">
+          <h4>Pendidikan & Lainnya</h4>
+          <div class="field-grid">
+            ${fieldRow('Sekolah / Institusi', escapeHtml(a.sekolah))}
+            ${fieldRow('Tahun Lulus & Nilai', escapeHtml(a.tahun_nilai))}
+            ${fieldRow('Sertifikasi Tambahan', escapeHtml(a.sertifikasi), true)}
+            ${fieldRow('Tipe MBTI', escapeHtml(a.mbti))}
+            ${fieldRow('Hasil MBTI', linkMbti)}
+          </div>
+        </div>
+      </div>
+    `;
+    document.getElementById('overlay').classList.add('open');
+    document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+  }
+
+  function closeModal(){
+    document.getElementById('overlay').classList.remove('open');
+  }
+
+  document.getElementById('overlay').addEventListener('click', (e) => {
+    if(e.target.id === 'overlay') closeModal();
+  });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
+
+  document.getElementById('searchInput').addEventListener('input', render);
+  document.getElementById('filterCabang').addEventListener('change', render);
+  document.getElementById('filterPosisi').addEventListener('change', render);
+
+  document.getElementById('btnUpload').addEventListener('click', () => {
+    document.getElementById('csvInput').click();
+  });
+
+  document.getElementById('csvInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results){
+        applicants = objectsFromParsed(results);
+        showFetchBanner(false);
+        setUploadHint('Pratinjau: ' + file.name + ' (hanya di layar ini, tidak tersimpan)');
+        render();
+      },
+      error: function(err){
+        alert('Gagal membaca file CSV: ' + err.message);
+      }
+    });
+  });
+
+  loadFromCsv();
+})();
+</script>
+</body>
+</html>
